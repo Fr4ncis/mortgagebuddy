@@ -93,6 +93,16 @@
   .stat span{display:block;font-size:11.5px;color:var(--muted);margin-bottom:5px}
   .stat b{font-size:17px;font-weight:620;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 
+  .sharelede{font-size:12.5px;color:var(--muted);margin:-6px 0 12px}
+  .linkrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .linkrow input{flex:1 1 260px;min-width:0;background:var(--panel-2);border:1px solid var(--line);
+    color:var(--muted);border-radius:9px;padding:9px 11px;font-size:12.5px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;text-overflow:ellipsis}
+  .linkrow input:focus{color:var(--ink)}
+  .chip.copy{padding:9px 16px;font-weight:550;border-color:var(--accent);color:var(--accent);white-space:nowrap}
+  .chip.copy:hover{background:var(--accent);color:var(--accent-ink)}
+  .chip.copy.done{background:var(--good);border-color:var(--good);color:var(--accent-ink)}
+
   .seg{display:inline-flex;background:var(--panel-2);border:1px solid var(--line);border-radius:999px;
     padding:3px;gap:3px;margin-bottom:14px}
   .seg button{border:none;background:none;color:var(--muted);font-size:13px;padding:5px 14px;
@@ -201,6 +211,18 @@
       </div>
       <div class="chips" id="chipsMonthly"></div>
     </div>
+  </section>
+
+  <section class="card">
+    <h2>Take these figures with you</h2>
+    <p class="sharelede">A link with everything above built into it — paste it on your phone or another
+      computer and it opens ready to go.</p>
+    <div class="linkrow">
+      <input type="text" id="shareUrl" readonly spellcheck="false">
+      <button class="chip copy" id="copyBtn" type="button">Copy link</button>
+    </div>
+    <p class="note" id="shareNote">Treat it like a bank statement: anyone who opens this link sees your balance,
+      rate and payment. It travels in the address, so avoid posting it anywhere public.</p>
   </section>
 
   <section class="result" id="result">
@@ -402,6 +424,49 @@
     if (touched) save();
   }
 
+  /* The reverse of fromURL: a link that reopens the page with these figures. */
+  var URL_MAP = {b:"balance", r:"rate", p:"payment", d:"asof", c:"changeIn",
+                 r2:"rate2", p2:"payment2", o:"overpay", m:"monthly", mf:"monthlyFor"};
+
+  function buildURL(){
+    var q = [];
+    Object.keys(URL_MAP).forEach(function(k){
+      var el = $(URL_MAP[k]);
+      if (!el) return;
+      var v = String(el.value).trim();
+      if (v === "" || +v === 0) return;                 // skip empties and zeros
+      if (k === "c" && !$("hasChange").checked) return; // irrelevant when off
+      if ((k === "r2" || k === "p2") && !$("hasChange").checked) return;
+      q.push(k + "=" + encodeURIComponent(v));
+    });
+    if (!$("hasChange").checked) q.push("nc=1");
+    return location.href.split(/[?#]/)[0] + (q.length ? "?" + q.join("&") : "");
+  }
+
+  function flashCopy(msg){
+    var btn = $("copyBtn");
+    btn.textContent = msg;
+    btn.classList.add("done");
+    setTimeout(function(){ btn.textContent = "Copy link"; btn.classList.remove("done"); }, 2200);
+  }
+
+  function copyLink(){
+    var el = $("shareUrl");
+    el.focus(); el.select(); el.setSelectionRange(0, 99999);   // works on iOS too
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(el.value).then(function(){ flashCopy("Copied"); },
+        function(){ legacyCopy(); });
+    } else {
+      legacyCopy();
+    }
+  }
+
+  function legacyCopy(){
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch(e){}
+    flashCopy(ok ? "Copied" : "Press ⌘C");
+  }
+
   function reset(){
     Object.keys(DEFAULTS).forEach(function(k){
       if (k === "hasChange") $("hasChange").checked = DEFAULTS[k];
@@ -426,6 +491,7 @@
       err.hidden = false;
       err.textContent = "That monthly payment doesn't cover the monthly interest, so the balance never clears. Check the payment and rate.";
       ["bigtime","stats","ladder","perPound","ladderNote","lede"].forEach(function(id){ $(id).innerHTML = ""; });
+      $("shareUrl").value = buildURL();
       return;
     }
     err.hidden = true;
@@ -474,6 +540,7 @@
     }).join("");
 
     renderLadder(cfg, base, start);
+    $("shareUrl").value = buildURL();
   }
 
   function renderLadder(cfg, base, start){
@@ -550,6 +617,8 @@
   });
 
   $("resetBtn").addEventListener("click", reset);
+  $("copyBtn").addEventListener("click", copyLink);
+  $("shareUrl").addEventListener("focus", function(){ this.select(); });
 
   $("themeBtn").addEventListener("click", function(){
     var cur = document.documentElement.getAttribute("data-theme");

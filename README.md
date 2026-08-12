@@ -56,10 +56,19 @@ shortened, you usually have to ask.
 
 Estimates only. Not financial advice.
 
+## Moving your figures between devices
+
+There are no accounts, so the **Take these figures with you** box builds a link containing
+everything you've entered. Hit **Copy link**, paste it on your phone or another computer, and
+it opens with your mortgage and overpayments already filled in. From then on that browser
+remembers them on its own.
+
+The link carries your balance, rate and payment in the address — fine for a bookmark or a
+message to yourself, not something to post publicly.
+
 ## Prefilling from the URL
 
-Handy for bookmarking your own figures without typing them in each time (they stay in your
-browser either way):
+The same thing by hand, if you'd rather build the link yourself:
 
 | Param | Meaning              | Param | Meaning                          |
 |-------|----------------------|-------|----------------------------------|
