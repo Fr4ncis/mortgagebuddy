@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MortgageBuddy — Overpayment Calculator</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --panel:#ffffff; --panel-2:#f0f2f5; --ink:#12161c; --muted:#606a78;
+    --line:#dfe3e9; --accent:#1f6feb; --accent-ink:#ffffff; --good:#0b7a4b; --good-bg:#e6f5ee;
+    --warn:#8a5a00; --shadow:0 1px 2px rgba(16,24,40,.06),0 8px 24px rgba(16,24,40,.06);
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0d1117; --panel:#161b22; --panel-2:#1c232c; --ink:#e6edf3; --muted:#9aa7b4;
+      --line:#2a323c; --accent:#4c8dff; --accent-ink:#08111f; --good:#4ade80; --good-bg:#10281d;
+      --warn:#e3b341; --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0d1117; --panel:#161b22; --panel-2:#1c232c; --ink:#e6edf3; --muted:#9aa7b4;
+    --line:#2a323c; --accent:#4c8dff; --accent-ink:#08111f; --good:#4ade80; --good-bg:#10281d;
+    --warn:#e3b341; --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:980px;margin:0 auto;padding:28px 18px 80px}
+  header{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  h1{font-size:22px;margin:0;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:13.5px;margin:0 0 22px}
+  .theme-btn{margin-left:auto;background:none;border:1px solid var(--line);color:var(--muted);
+    border-radius:999px;padding:5px 12px;font-size:12.5px;cursor:pointer}
+  .theme-btn:hover{color:var(--ink)}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:18px 18px 16px;margin-bottom:18px}
+  .card h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
+    margin:0 0 14px;font-weight:650}
+
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+  label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px}
+  input[type=number],input[type=date]{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--ink);
+    border-radius:9px;padding:9px 11px;font-size:15px;font-variant-numeric:tabular-nums;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+  .field{position:relative}
+  .field.prefix input{padding-left:24px}
+  .field.prefix::before{content:"£";position:absolute;left:11px;top:31px;color:var(--muted);
+    font-family:ui-monospace,Menlo,monospace;font-size:14px}
+  .field.suffix input{padding-right:26px}
+  .field.suffix::after{content:"%";position:absolute;right:11px;top:31px;color:var(--muted);font-size:13px}
+
+  .switchrow{display:flex;align-items:center;gap:9px;margin:16px 0 0;font-size:13.5px;color:var(--muted)}
+  .switchrow input{accent-color:var(--accent);width:16px;height:16px}
+  #rateChangeFields{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+  #rateChangeFields[hidden]{display:none}
+
+  .oprow{padding:14px 0;border-bottom:1px dashed var(--line)}
+  .oprow:first-of-type{padding-top:0}
+  .oprow:last-of-type{border-bottom:none;padding-bottom:4px}
+  .oprow h3{font-size:14px;margin:0 0 3px;font-weight:620}
+  .oprow p{font-size:12.5px;color:var(--muted);margin:0 0 12px}
+  .opfields{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+  .opfields .field{flex:0 1 190px;min-width:150px}
+
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+  .chip{background:var(--panel-2);border:1px solid var(--line);color:var(--ink);border-radius:999px;
+    padding:6px 13px;font-size:13px;cursor:pointer;font-variant-numeric:tabular-nums}
+  .chip:hover{border-color:var(--accent);color:var(--accent)}
+
+  .result{background:var(--good-bg);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+  .result .lede{font-size:13.5px;color:var(--muted);margin:0 0 12px;line-height:1.45}
+  .bigtime{display:flex;flex-wrap:wrap;gap:18px 26px;align-items:flex-end}
+  .unit{display:flex;flex-direction:column;line-height:1}
+  .unit b{font-size:38px;font-weight:680;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--good)}
+  .unit span{font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-top:6px}
+  .unit.small b{font-size:24px;color:var(--ink);opacity:.75}
+
+  .stats{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);
+    border-radius:12px;overflow:hidden;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-top:18px}
+  .stat{background:var(--panel);padding:13px 14px}
+  .stat span{display:block;font-size:11.5px;color:var(--muted);margin-bottom:5px}
+  .stat b{font-size:17px;font-weight:620;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+
+  .seg{display:inline-flex;background:var(--panel-2);border:1px solid var(--line);border-radius:999px;
+    padding:3px;gap:3px;margin-bottom:14px}
+  .seg button{border:none;background:none;color:var(--muted);font-size:13px;padding:5px 14px;
+    border-radius:999px;cursor:pointer;font-weight:550}
+  .seg button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink)}
+
+  .tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{border-collapse:collapse;width:100%;min-width:460px;font-variant-numeric:tabular-nums}
+  th,td{text-align:right;padding:9px 10px;border-bottom:1px solid var(--line);font-size:13.5px;white-space:nowrap}
+  th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+  th:first-child,td:first-child{text-align:left}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr{cursor:pointer}
+  tbody tr:hover{background:var(--panel-2)}
+
+  .note{font-size:12.5px;color:var(--muted);margin:14px 0 0}
+  .err{color:var(--warn);font-size:13.5px;margin-top:10px}
+  .saved{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;margin-top:4px}
+  .linkbtn{background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;padding:0;text-decoration:underline}
+  footer{color:var(--muted);font-size:12px;text-align:center;margin-top:26px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>MortgageBuddy</h1>
+    <button class="theme-btn" id="themeBtn" type="button">theme</button>
+  </header>
+  <p class="sub">Overpay a lump sum, a bit every month, or both → exactly how much sooner you're free. Down to the minute.</p>
+
+  <section class="card">
+    <h2>Your mortgage</h2>
+    <div class="grid">
+      <div class="field prefix">
+        <label for="balance">Remaining balance</label>
+        <input type="number" id="balance" step="0.01" min="0" value="250000">
+      </div>
+      <div class="field suffix">
+        <label for="rate">Interest rate (annual)</label>
+        <input type="number" id="rate" step="0.01" min="0" value="4.5">
+      </div>
+      <div class="field prefix">
+        <label for="payment">Monthly payment</label>
+        <input type="number" id="payment" step="0.01" min="0" value="1266.71">
+      </div>
+      <div class="field">
+        <label for="asof">Balance as of</label>
+        <input type="date" id="asof">
+      </div>
+    </div>
+
+    <div class="switchrow">
+      <input type="checkbox" id="hasChange" checked>
+      <label for="hasChange" style="margin:0;color:inherit">My rate changes later (fixed / tracker deal ends)</label>
+    </div>
+
+    <div id="rateChangeFields">
+      <div class="grid">
+        <div class="field">
+          <label for="changeIn">Months until the change</label>
+          <input type="number" id="changeIn" step="1" min="1" value="24">
+        </div>
+        <div class="field suffix">
+          <label for="rate2">Rate after that</label>
+          <input type="number" id="rate2" step="0.01" min="0" value="5.5">
+        </div>
+        <div class="field prefix">
+          <label for="payment2">Monthly payment after that</label>
+          <input type="number" id="payment2" step="0.01" min="0" value="1411.73">
+        </div>
+      </div>
+    </div>
+
+    <p class="saved">Saved in this browser automatically — your figures never leave it.
+      <button class="linkbtn" id="resetBtn" type="button">Reset to example figures</button></p>
+  </section>
+
+  <section class="card">
+    <h2>Your overpayments</h2>
+
+    <div class="oprow">
+      <h3>One-off lump sum</h3>
+      <p>A single extra payment, made today.</p>
+      <div class="opfields">
+        <div class="field prefix">
+          <label for="overpay">Amount</label>
+          <input type="number" id="overpay" step="0.01" min="0" value="1000">
+        </div>
+      </div>
+      <div class="chips" id="chipsOne"></div>
+    </div>
+
+    <div class="oprow">
+      <h3>Regular monthly overpayment</h3>
+      <p>An extra amount on top of your normal payment, every month.</p>
+      <div class="opfields">
+        <div class="field prefix">
+          <label for="monthly">Extra each month</label>
+          <input type="number" id="monthly" step="0.01" min="0" value="100">
+        </div>
+        <div class="field">
+          <label for="monthlyFor">Keep it up for</label>
+          <input type="number" id="monthlyFor" step="1" min="1" placeholder="until paid off">
+        </div>
+      </div>
+      <div class="chips" id="chipsMonthly"></div>
+    </div>
+  </section>
+
+  <section class="result" id="result">
+    <p class="lede" id="lede"></p>
+    <div class="bigtime" id="bigtime"></div>
+    <div class="stats" id="stats"></div>
+    <p class="err" id="err" hidden></p>
+  </section>
+
+  <section class="card" style="margin-top:18px">
+    <h2>What each amount buys you</h2>
+    <div class="seg" id="seg">
+      <button type="button" data-mode="one" aria-pressed="true">One-off lump sum</button>
+      <button type="button" data-mode="monthly" aria-pressed="false">Every month</button>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr id="ladderHead"></tr></thead>
+        <tbody id="ladder"></tbody>
+      </table>
+    </div>
+    <p class="note" id="perPound"></p>
+    <p class="note" id="ladderNote"></p>
+  </section>
+
+  <p class="note">
+    Assumes your contractual monthly payment stays the same after overpaying (so the saving comes off the <em>term</em>,
+    not the payment) and the rate holds at what you entered. Interest is charged monthly on the balance. The last payment
+    is nearly always a part-payment — the days/hours/minutes come from how far into that final month the debt clears,
+    which is what makes small overpayments visible at all.
+  </p>
+  <p class="note">
+    <b>Check your lender's rules.</b> Some charge an early repayment fee, or cap penalty-free overpayments at a
+    percentage of the balance each year. Many treat a large overpayment as a capital repayment and respond by cutting
+    your <em>monthly payment</em> rather than your term — which is the opposite of what this calculator assumes, and
+    wipes out the time saving. If you want the term shortened, say so explicitly. Estimates only, not advice.
+  </p>
+
+  <footer>Your figures never leave this browser.</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var MONTH_DAYS = 365.2425/12;      // 30.436875
+  var MONTH_MS   = MONTH_DAYS*86400000;
+  var $ = function(id){ return document.getElementById(id); };
+  var KEY = "mortgagebuddy.v1";
+
+  var DEFAULTS = {
+    balance:"250000", rate:"4.5", payment:"1266.71", asof:todayISO(),
+    hasChange:true, changeIn:"24", rate2:"5.5", payment2:"1411.73",
+    overpay:"1000", monthly:"100", monthlyFor:""
+  };
+  var FIELDS = ["balance","rate","payment","asof","changeIn","rate2","payment2","overpay","monthly","monthlyFor"];
+  var ladderMode = "one";
+
+  function todayISO(){
+    var d = new Date(), z = new Date(d.getTime() - d.getTimezoneOffset()*60000);
+    return z.toISOString().slice(0,10);
+  }
+
+  /* ---------- core amortisation ----------
+     Walks month by month. `ops` layers overpayments on top of the contractual
+     payment: a lump sum today, and/or an extra amount every month (optionally
+     only for the first `monthlyFor` months).
+     Returns payoff time as a real number of months — whole months of full
+     payments, plus the fraction of the final month's payment actually needed. */
+  function payoff(balance, cfg, ops){
+    ops = ops || {};
+    var lump    = Math.max(0, Math.min(ops.oneOff || 0, balance));
+    var perMonth= Math.max(0, ops.monthly || 0);
+    var forN    = ops.monthlyFor || null;      // null = until it's cleared
+
+    var b = balance - lump, paid = lump, extra = lump, m = 0;
+    if (b <= 1e-9) return {months:0, paid:paid, extra:extra, interest: paid - balance};
+
+    while (m < 1500){
+      var late = cfg.hasChange && m >= cfg.changeIn;
+      var r = (late ? cfg.rate2 : cfg.rate)/100/12;
+      var P = late ? cfg.payment2 : cfg.payment;
+      var ex = (perMonth > 0 && (!forN || m < forN)) ? perMonth : 0;
+      var pay = P + ex;
+      var interest = b*r;
+      if (pay <= interest + 1e-9) return null;    // payment never touches capital
+      var due = b + interest;
+      if (due <= pay){
+        var frac = due/pay;                        // part-month to clear
+        paid  += due;
+        extra += ex*frac;
+        return {months: m + frac, paid:paid, extra:extra, interest: paid - balance};
+      }
+      b = due - pay;
+      paid  += pay;
+      extra += ex;
+      m++;
+    }
+    return null;
+  }
+
+  /* ---------- formatting ---------- */
+  function gbp(n, dp){
+    dp = dp === undefined ? 0 : dp;
+    return "£" + n.toLocaleString("en-GB",{minimumFractionDigits:dp, maximumFractionDigits:dp});
+  }
+  function money(n){ return gbp(n, n % 1 ? 2 : 0); }
+
+  function breakdown(months){
+    var y = Math.floor(months/12);
+    var rem = months - y*12;
+    var mo = Math.floor(rem);
+    var frac = rem - mo;
+    var totalSec = Math.round(frac*MONTH_DAYS*86400);
+    var d = Math.floor(totalSec/86400); totalSec -= d*86400;
+    var h = Math.floor(totalSec/3600);  totalSec -= h*3600;
+    var mi = Math.floor(totalSec/60);
+    var s = totalSec - mi*60;
+    return {years:y, months:mo, days:d, hours:h, minutes:mi, seconds:s};
+  }
+
+  function timeText(months, maxUnits){
+    maxUnits = maxUnits || 3;
+    var b = breakdown(months);
+    var all = [[b.years,"yr"],[b.months,"mo"],[b.days,"d"],[b.hours,"h"],[b.minutes,"m"],[b.seconds,"s"]];
+    var i = 0;
+    while (i < all.length-1 && all[i][0] === 0) i++;
+    var out = [];
+    for (var k=i; k<all.length && out.length<maxUnits; k++){
+      if (all[k][0] === 0 && out.length === 0) continue;
+      out.push(all[k][0] + all[k][1]);
+    }
+    while (out.length > 1 && /^0[a-z]+$/.test(out[out.length-1])) out.pop();
+    return out.length ? out.join(" ") : "0m";
+  }
+
+  function addMonths(date, months){
+    var whole = Math.floor(months), frac = months - whole;
+    var d = new Date(date.getTime());
+    var day = d.getDate();
+    d.setMonth(d.getMonth() + whole);
+    if (d.getDate() < day) d.setDate(0);          // clamp e.g. 31 Jan + 1mo
+    return new Date(d.getTime() + frac*MONTH_MS);
+  }
+  function fmtDate(d){
+    return d.toLocaleDateString("en-GB",{day:"numeric", month:"short", year:"numeric"});
+  }
+  function plural(n, word){ return n + " " + word + (n === 1 ? "" : "s"); }
+
+  /* ---------- state ---------- */
+  function read(){
+    var forRaw = $("monthlyFor").value.trim();
+    return {
+      balance:  +$("balance").value  || 0,
+      rate:     +$("rate").value     || 0,
+      payment:  +$("payment").value  || 0,
+      hasChange: $("hasChange").checked,
+      changeIn: Math.max(1, Math.round(+$("changeIn").value || 1)),
+      rate2:    +$("rate2").value    || 0,
+      payment2: +$("payment2").value || 0,
+      asof:     $("asof").value || todayISO(),
+      ops: {
+        oneOff:  +$("overpay").value || 0,
+        monthly: +$("monthly").value || 0,
+        monthlyFor: forRaw === "" ? null : Math.max(1, Math.round(+forRaw || 1))
+      }
+    };
+  }
+
+  function save(){
+    var o = {hasChange: $("hasChange").checked, ladderMode: ladderMode};
+    FIELDS.forEach(function(f){ o[f] = $(f).value; });
+    try { localStorage.setItem(KEY, JSON.stringify(o)); } catch(e){}
+  }
+
+  function load(){
+    var o = null;
+    try { o = JSON.parse(localStorage.getItem(KEY) || "null"); } catch(e){}
+    if (!o){ $("asof").value = DEFAULTS.asof; return; }
+    FIELDS.forEach(function(f){ if (o[f] !== undefined) $(f).value = o[f]; });
+    if (o.hasChange !== undefined) $("hasChange").checked = !!o.hasChange;
+    if (o.ladderMode) ladderMode = o.ladderMode;
+    if (!$("asof").value) $("asof").value = DEFAULTS.asof;
+  }
+
+  /* Optional prefill from the URL, e.g. ?b=250000&r=4.5&p=1266.71 — lets you
+     bookmark your own figures without baking them into the page. */
+  function fromURL(){
+    var q = new URLSearchParams(location.search);
+    if (!q.toString()) return;
+    var map = {b:"balance", r:"rate", p:"payment", d:"asof", c:"changeIn",
+               r2:"rate2", p2:"payment2", o:"overpay", m:"monthly", mf:"monthlyFor"};
+    var touched = false;
+    Object.keys(map).forEach(function(k){
+      var v = q.get(k);
+      if (v !== null && v !== "" && $(map[k])){ $(map[k]).value = v; touched = true; }
+    });
+    if (q.get("nc") !== null){ $("hasChange").checked = q.get("nc") !== "1"; touched = true; }
+    if (touched) save();
+  }
+
+  function reset(){
+    Object.keys(DEFAULTS).forEach(function(k){
+      if (k === "hasChange") $("hasChange").checked = DEFAULTS[k];
+      else if ($(k)) $(k).value = DEFAULTS[k];
+    });
+    $("asof").value = todayISO();
+    save(); render();
+  }
+
+  /* ---------- render ---------- */
+  function render(){
+    var cfg = read(), ops = cfg.ops;
+    $("rateChangeFields").hidden = !cfg.hasChange;
+    $("seg").querySelectorAll("button").forEach(function(b){
+      b.setAttribute("aria-pressed", String(b.dataset.mode === ladderMode));
+    });
+
+    var base  = payoff(cfg.balance, cfg, {});
+    var err   = $("err");
+
+    if (!base){
+      err.hidden = false;
+      err.textContent = "That monthly payment doesn't cover the monthly interest, so the balance never clears. Check the payment and rate.";
+      ["bigtime","stats","ladder","perPound","ladderNote","lede"].forEach(function(id){ $(id).innerHTML = ""; });
+      return;
+    }
+    err.hidden = true;
+
+    var after = payoff(cfg.balance, cfg, ops) || {months:0, paid:0, extra:0};
+    var saved = Math.max(0, base.months - after.months);
+    var moneySaved = Math.max(0, base.paid - after.paid);
+
+    var start = new Date(cfg.asof + "T00:00:00");
+    if (isNaN(start.getTime())) start = new Date();
+    var endBase  = addMonths(start, base.months);
+    var endAfter = addMonths(start, after.months);
+
+    // what you're actually doing, in words
+    var bits = [];
+    if (ops.oneOff > 0) bits.push("<b>" + money(ops.oneOff) + "</b> today");
+    if (ops.monthly > 0){
+      bits.push("<b>" + money(ops.monthly) + "</b> every month" +
+        (ops.monthlyFor ? " for " + plural(ops.monthlyFor,"month") : ""));
+    }
+    $("lede").innerHTML = bits.length
+      ? "Overpaying " + bits.join(" and ") + " clears your mortgage"
+      : "Enter an overpayment above to see the difference it makes.";
+
+    // headline
+    var b = breakdown(saved);
+    var units = [
+      {v:b.years,l:"years"},{v:b.months,l:"months"},{v:b.days,l:"days"},
+      {v:b.hours,l:"hours"},{v:b.minutes,l:"minutes"},{v:b.seconds,l:"seconds"}
+    ];
+    var first = 0;
+    while (first < units.length-2 && units[first].v === 0) first++;
+    $("bigtime").innerHTML = units.slice(first, first+4).map(function(u,i){
+      var label = u.v === 1 ? u.l.replace(/s$/,"") : u.l;
+      return '<div class="unit'+(i>1?' small':'')+'"><b>'+u.v+'</b><span>'+label+'</span></div>';
+    }).join("") + '<div class="unit small" style="margin-left:auto;text-align:right"><b>' +
+      fmtDate(endAfter) + '</b><span>new final payment</span></div>';
+
+    $("stats").innerHTML = [
+      ["Interest saved", gbp(moneySaved, 2)],
+      ["Total overpaid", gbp(after.extra, 2)],
+      ["Term left now", timeText(base.months,2) + " &middot; " + fmtDate(endBase)],
+      ["Term left after", after.months > 0 ? timeText(after.months,2) : "cleared"]
+    ].map(function(p){
+      return '<div class="stat"><span>'+p[0]+'</span><b>'+p[1]+'</b></div>';
+    }).join("");
+
+    renderLadder(cfg, base, start);
+  }
+
+  function renderLadder(cfg, base, start){
+    var monthlyMode = ladderMode === "monthly";
+    var amounts = monthlyMode
+      ? [10,25,50,100,200,300,500,1000]
+      : [1,10,50,100,250,500,1000,2500,5000,10000];
+    amounts = amounts.filter(function(a){ return monthlyMode || a <= cfg.balance; });
+
+    $("ladderHead").innerHTML =
+      "<th>" + (monthlyMode ? "Every month" : "Overpay") + "</th>" +
+      "<th>Time off the mortgage</th><th>Interest saved</th>" +
+      "<th>" + (monthlyMode ? "Total overpaid" : "New end date") + "</th>";
+
+    $("ladder").innerHTML = amounts.map(function(a){
+      var ops = monthlyMode
+        ? {monthly:a, monthlyFor: cfg.ops.monthlyFor}
+        : {oneOff:a};
+      var r = payoff(cfg.balance, cfg, ops);
+      if (!r) return "";
+      var s = Math.max(0, base.months - r.months);
+      var m = Math.max(0, base.paid - r.paid);
+      return '<tr data-amt="'+a+'"><td>'+gbp(a)+(monthlyMode?"/mo":"")+'</td><td>'+timeText(s,3)+'</td>' +
+             '<td>'+gbp(m,2)+'</td><td>'+
+             (monthlyMode ? gbp(r.extra,0) : fmtDate(addMonths(start, r.months))) + '</td></tr>';
+    }).join("");
+
+    // marginal value of one more pound
+    var one = payoff(cfg.balance, cfg, monthlyMode ? {monthly:1, monthlyFor:cfg.ops.monthlyFor} : {oneOff:1});
+    if (one){
+      $("perPound").innerHTML = monthlyMode
+        ? "Every extra <b>£1 a month</b> takes <b>" + timeText(base.months - one.months, 3) +
+          "</b> off the end of your mortgage and saves " + gbp(Math.max(0, base.paid - one.paid), 2) + " in interest."
+        : "Right now, every extra <b>£1</b> you throw at this mortgage takes <b>" + timeText(base.months - one.months, 3) +
+          "</b> off the end of it — and saves " + gbp(Math.max(0, base.paid - one.paid), 2) +
+          " in interest. The earlier you pay it, the more it's worth.";
+    }
+    $("ladderNote").innerHTML = "Each row is measured against making <em>no</em> overpayments at all, so rows don't stack with " +
+      "what you entered above" + (monthlyMode && cfg.ops.monthlyFor ? ", and each one runs for " +
+      plural(cfg.ops.monthlyFor,"month") + " to match your setting" : "") + ". Click a row to load it.";
+  }
+
+  /* ---------- wiring ---------- */
+  function chipRow(el, amounts, target){
+    el.innerHTML = amounts.map(function(a){
+      return '<button class="chip" type="button" data-amt="'+a+'">+'+gbp(a)+'</button>';
+    }).join("") + '<button class="chip" type="button" data-amt="0">clear</button>';
+    el.addEventListener("click", function(e){
+      var t = e.target.closest(".chip"); if (!t) return;
+      var a = +t.dataset.amt;
+      $(target).value = a === 0 ? 0 : (+$(target).value || 0) + a;
+      save(); render();
+    });
+  }
+  chipRow($("chipsOne"), [1,5,20,100,500,1000,5000,10000], "overpay");
+  chipRow($("chipsMonthly"), [10,25,50,100,200,500], "monthly");
+
+  $("seg").addEventListener("click", function(e){
+    var b = e.target.closest("button"); if (!b) return;
+    ladderMode = b.dataset.mode; save(); render();
+  });
+
+  $("ladder").addEventListener("click", function(e){
+    var tr = e.target.closest("tr"); if (!tr || !tr.dataset.amt) return;
+    $(ladderMode === "monthly" ? "monthly" : "overpay").value = tr.dataset.amt;
+    save(); render();
+    $("result").scrollIntoView({behavior:"smooth", block:"nearest"});
+  });
+
+  ["input","change"].forEach(function(ev){
+    document.addEventListener(ev, function(e){
+      if (e.target.tagName === "INPUT"){ save(); render(); }
+    });
+  });
+
+  $("resetBtn").addEventListener("click", reset);
+
+  $("themeBtn").addEventListener("click", function(){
+    var cur = document.documentElement.getAttribute("data-theme");
+    var next = cur === "dark" ? "light" : cur === "light" ? "" : "dark";
+    if (next) document.documentElement.setAttribute("data-theme", next);
+    else document.documentElement.removeAttribute("data-theme");
+    try { localStorage.setItem(KEY+".theme", next); } catch(e){}
+  });
+  try {
+    var th = localStorage.getItem(KEY+".theme");
+    if (th) document.documentElement.setAttribute("data-theme", th);
+  } catch(e){}
+
+  load();
+  fromURL();
+  render();
+})();
+</script>
+</body>
+</html>
