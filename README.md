@@ -56,6 +56,14 @@ shortened, you usually have to ask.
 
 Estimates only. Not financial advice.
 
+## Chrome extension
+
+[`extension/`](extension/) holds a Chrome extension that reads your Amazon basket
+total and shows what it would take off your mortgage instead — under the subtotal
+on the basket page, and in a toolbar popup for any amount you type. It shares this
+engine, runs only on Amazon basket URLs, and makes no network requests. See
+[its README](extension/README.md) for installing and testing it.
+
 ## Moving your figures between devices
 
 There are no accounts, so the **Take these figures with you** box builds a link containing

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Amazon.co.uk Shopping Basket (classic layout)</title>
+<style>body{font:14px Arial,sans-serif;margin:0;padding:20px;background:#eaeded}
+.box{background:#fff;border-radius:8px;padding:16px;margin-bottom:14px;max-width:760px}
+.sc-price{font-weight:700;color:#B12704}.a-offscreen{position:absolute;left:-9999px}</style>
+</head>
+<body>
+<!-- Mirrors the long-standing desktop basket markup: the subtotal lives in
+     #sc-subtotal-amount-activecart, with the accessible price in .a-offscreen
+     and the visible one in a sibling span. -->
+<div id="sc-active-cart">
+  <form id="activeCartViewForm">
+    <div class="box">
+      <h1>Shopping Basket</h1>
+      <div class="sc-list-item">Sony WH-1000XM5 Wireless Headphones — <span class="a-price"><span class="a-offscreen">£279.00</span><span aria-hidden="true">£279.00</span></span></div>
+      <div class="sc-list-item">Anker USB-C Cable 2m — <span class="a-price"><span class="a-offscreen">£12.99</span><span aria-hidden="true">£12.99</span></span></div>
+      <div class="sc-list-item">Lego Botanical Orchid — <span class="a-price"><span class="a-offscreen">£44.99</span><span aria-hidden="true">£44.99</span></span></div>
+    </div>
+    <div class="box" style="text-align:right">
+      <div id="sc-subtotal-label-activecart">Subtotal (3 items):</div>
+      <div id="sc-subtotal-amount-activecart" class="sc-price-container">
+        <span class="a-price"><span class="a-offscreen">£336.98</span><span aria-hidden="true" class="sc-price">£336.98</span></span>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script src="stub.js"></script>
+<script src="../../lib/mortgage.js"></script>
+<script src="../../lib/amazon.js"></script>
+<script src="../../lib/settings.js"></script>
+<script src="../../content/cart.js"></script>
+</body>
+</html>

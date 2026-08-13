@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MortgageBuddy</title>
+<style>
+  :root{
+    --bg:#fff;--panel-2:#f0f2f5;--ink:#12161c;--muted:#606a78;--line:#dfe3e9;
+    --accent:#1f6feb;--good:#0b7a4b;--good-bg:#e6f5ee;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#161b22;--panel-2:#1c232c;--ink:#e6edf3;--muted:#9aa7b4;--line:#2a323c;
+    --accent:#4c8dff;--good:#4ade80;--good-bg:#10281d;}}
+  *{box-sizing:border-box}
+  body{width:296px;margin:0;padding:16px;background:var(--bg);color:var(--ink);
+    font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif}
+  h1{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 12px;font-weight:650}
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+  input{width:100%;background:var(--panel-2);border:1px solid var(--line);color:var(--ink);
+    border-radius:8px;padding:9px 11px;font-size:15px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+  .out{background:var(--good-bg);border:1px solid var(--line);border-radius:10px;padding:13px;margin-top:12px}
+  .out .big{font-size:16px;font-weight:670;color:var(--good);margin:0 0 3px}
+  .out .m{font-size:12px;color:var(--muted);margin:0}
+  .foot{margin:13px 0 0;font-size:12px;display:flex;justify-content:space-between;align-items:center}
+  a{color:var(--accent);text-decoration:none;cursor:pointer}
+  a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+  <h1>What would it cost you?</h1>
+  <label for="amt">Amount you're about to spend</label>
+  <input type="number" id="amt" step="0.01" min="0" value="50" autofocus>
+  <div class="out" id="out"><p class="m">Enter an amount.</p></div>
+  <p class="foot">
+    <a id="opts">Settings</a>
+    <a href="https://fr4ncis.github.io/mortgagebuddy/" target="_blank" rel="noopener">Full calculator</a>
+  </p>
+<script src="lib/mortgage.js"></script>
+<script src="lib/settings.js"></script>
+<script src="popup.js"></script>
+</body>
+</html>

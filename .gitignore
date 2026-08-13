@@ -1,4 +1,14 @@
 .omc/
 .playwright-mcp/
 .DS_Store
-*.png
+
+# scratch screenshots from local testing (the extension's icons must NOT be
+# ignored, so no blanket *.png rule here)
+/fx*.png
+/v2.png
+/share.png
+/mb-*.png
+
+# Chrome's --pack-extension output; the .pem is a signing key
+*.crx
+*.pem

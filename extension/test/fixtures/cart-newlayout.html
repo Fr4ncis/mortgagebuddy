@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Amazon.co.uk Basket (data-name layout)</title>
+<style>body{font:14px Arial,sans-serif;margin:0;padding:20px;background:#eaeded}
+.box{background:#fff;border-radius:8px;padding:16px;max-width:340px;margin-bottom:14px}
+.a-offscreen{position:absolute;left:-9999px}</style>
+</head>
+<body>
+<!-- The right-hand "gutter" checkout box, where the subtotal is tagged with
+     data-name rather than an id, and the amount uses a non-breaking space. -->
+<div id="gutterCartViewForm">
+  <div class="box">
+    <div data-name="Subtotal">
+      <span>Subtotal (12 items):</span>
+      <span class="a-price"><span class="a-offscreen">£1 043,80</span><span aria-hidden="true">£1 043,80</span></span>
+    </div>
+    <button>Proceed to checkout</button>
+  </div>
+</div>
+
+<script src="stub.js"></script>
+<script src="../../lib/mortgage.js"></script>
+<script src="../../lib/amazon.js"></script>
+<script src="../../lib/settings.js"></script>
+<script src="../../content/cart.js"></script>
+</body>
+</html>

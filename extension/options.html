@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MortgageBuddy settings</title>
+<style>
+  :root{
+    --bg:#f6f7f9;--panel:#fff;--panel-2:#f0f2f5;--ink:#12161c;--muted:#606a78;
+    --line:#dfe3e9;--accent:#1f6feb;--accent-ink:#fff;--good:#0b7a4b;--good-bg:#e6f5ee;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#0d1117;--panel:#161b22;--panel-2:#1c232c;--ink:#e6edf3;--muted:#9aa7b4;
+    --line:#2a323c;--accent:#4c8dff;--accent-ink:#08111f;--good:#4ade80;--good-bg:#10281d;}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif}
+  .wrap{max-width:660px;margin:0 auto;padding:30px 20px 70px}
+  h1{font-size:21px;margin:0 0 4px;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:13.5px;margin:0 0 22px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+  h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 14px;font-weight:650}
+  .grid{display:grid;gap:13px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px}
+  input[type=text],input[type=number]{width:100%;background:var(--panel-2);border:1px solid var(--line);
+    color:var(--ink);border-radius:9px;padding:9px 11px;font-size:15px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+  input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+  .row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+  .row input{flex:1 1 240px}
+  button{background:var(--accent);color:var(--accent-ink);border:none;border-radius:9px;
+    padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer}
+  button.ghost{background:none;border:1px solid var(--line);color:var(--ink);font-weight:500}
+  button:hover{filter:brightness(1.08)}
+  .check{display:flex;gap:9px;align-items:center;font-size:13.5px;color:var(--muted);margin-top:14px}
+  .check input{width:16px;height:16px;accent-color:var(--accent)}
+  #changeFields[hidden]{display:none}
+  #changeFields{margin-top:13px;padding-top:13px;border-top:1px dashed var(--line)}
+  .preview{background:var(--good-bg);border:1px solid var(--line);border-radius:12px;padding:15px 17px;margin-top:4px}
+  .preview p{margin:0;font-size:14px}
+  .preview b{color:var(--good);font-size:17px}
+  .preview .m{color:var(--muted);font-size:12.5px;margin-top:6px}
+  .note{font-size:12.5px;color:var(--muted);margin:12px 0 0}
+  .status{font-size:13px;color:var(--good);min-height:20px;margin-left:4px}
+  a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>MortgageBuddy</h1>
+  <p class="sub">Your figures stay on this computer. The extension makes no network requests.</p>
+
+  <div class="card">
+    <h2>Import from a MortgageBuddy link</h2>
+    <div class="row">
+      <input type="text" id="link" placeholder="Paste your link from fr4ncis.github.io/mortgagebuddy" spellcheck="false">
+      <button class="ghost" id="importBtn" type="button">Import</button>
+    </div>
+    <p class="note">Use the <em>Copy link</em> button on the
+      <a href="https://fr4ncis.github.io/mortgagebuddy/" target="_blank" rel="noopener">web calculator</a>
+      and paste it here, or fill the fields in by hand below.</p>
+  </div>
+
+  <div class="card">
+    <h2>Your mortgage</h2>
+    <div class="grid">
+      <div><label for="balance">Remaining balance</label><input type="number" id="balance" step="0.01" min="0"></div>
+      <div><label for="rate">Interest rate (annual %)</label><input type="number" id="rate" step="0.01" min="0"></div>
+      <div><label for="payment">Monthly payment</label><input type="number" id="payment" step="0.01" min="0"></div>
+      <div><label for="currency">Currency symbol</label><input type="text" id="currency" maxlength="3"></div>
+    </div>
+    <div class="check">
+      <input type="checkbox" id="hasChange">
+      <label for="hasChange" style="margin:0;color:inherit">My rate changes later (fixed / tracker deal ends)</label>
+    </div>
+    <div id="changeFields">
+      <div class="grid">
+        <div><label for="changeIn">Months until the change</label><input type="number" id="changeIn" step="1" min="1"></div>
+        <div><label for="rate2">Rate after that (%)</label><input type="number" id="rate2" step="0.01" min="0"></div>
+        <div><label for="payment2">Payment after that</label><input type="number" id="payment2" step="0.01" min="0"></div>
+      </div>
+    </div>
+    <div class="check">
+      <input type="checkbox" id="enabled">
+      <label for="enabled" style="margin:0;color:inherit">Show the panel on Amazon basket pages</label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Check it looks right</h2>
+    <div class="preview" id="preview"><p>Enter your mortgage above.</p></div>
+    <p class="note">A £50 basket, for comparison.</p>
+  </div>
+
+  <div class="row">
+    <button id="saveBtn" type="button">Save</button>
+    <span class="status" id="status"></span>
+  </div>
+</div>
+
+<script src="lib/mortgage.js"></script>
+<script src="lib/settings.js"></script>
+<script src="options.js"></script>
+</body>
+</html>
